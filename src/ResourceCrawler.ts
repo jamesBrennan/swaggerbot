@@ -1,9 +1,11 @@
+import {stream} from '@types/node'
 import {Observable} from 'rxjs'
 const JsonapiClient = require('@holidayextras/jsonapi-client')
 import {GenericObject} from './interfaces'
 
 interface CrawlerOpts {
   limit?: number
+  errorLog?: stream.WritableStream
 }
 
 export default class ResourceCrawler {
@@ -11,12 +13,14 @@ export default class ResourceCrawler {
   client: GenericObject
   offset: number
   limit: number
+  errorLog: stream.WritableStream
 
   constructor(name: string, base: string, opts: CrawlerOpts) {
     this.name = name
     this.client = new JsonapiClient(base)
     this.offset = 0
     this.limit = opts.limit || 50
+    this.errorLog = opts.errorLog
   }
 
   task() {
@@ -33,18 +37,19 @@ export default class ResourceCrawler {
   async crawl(observer: any) {
     try {
       observer.next(`Fetching ${this.pageJSON}`)
-      let resources = await this.nextPage()
+      let resources = await this.next()
       if (resources.length > 0) {
         await this.crawl(observer)
       }
     } catch (e) {
-      observer.error(`Failed on ${this.pageJSON} with: ${e.message}`)
+      this.logError(e)
+      observer.error(e)
     } finally {
       observer.complete()
     }
   }
 
-  nextPage(): any[] {
+  async next(): any[] {
     return new Promise((resolve, reject) => {
       this.client.find(this.name, {page: this.page}, (err, resources) => {
         if (err) reject(err)
@@ -56,6 +61,11 @@ export default class ResourceCrawler {
 
   increment() {
     this.offset += this.limit
+  }
+
+  logError(error: Error) {
+    this.errorLog.write(`ERROR: ${this.name} - ${this.pageJSON} \n`)
+    this.errorLog.write(error.stack.concat("\n\n\n"))
   }
 
   get page() {

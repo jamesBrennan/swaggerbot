@@ -1,7 +1,8 @@
+import {Command, flags} from '@oclif/command'
+const fs = require('fs')
 const Swagger = require('swagger-client')
 const Listr = require('listr')
 
-import {Command, flags} from '@oclif/command'
 import ResourceCrawler from '../ResourceCrawler'
 
 interface CheckFlags {
@@ -30,24 +31,26 @@ export default class Check extends Command {
     const client = await new Swagger(args.src)
     const base = args.src.replace('/swagger.json', '')
     const resources = this.resources(client.apis, flags)
-
+    const errorLog = fs.createWriteStream('swaggerbot-errors.txt')
     const tasks: ListrTask[] = []
 
-    resources.forEach(resource => {
-      tasks.push(
-        new ResourceCrawler(resource, base, {limit: 100}).task()
-      )
-    })
+    let exitCode = 0
 
-    let opts = {concurrent: true, exitOnError: false}
-    let error = false
+    try {
+      resources.forEach(resource => {
+        tasks.push(
+          new ResourceCrawler(resource, base, {errorLog, limit: 100}).task()
+        )
+      })
 
-    await new Listr(tasks, opts).run().catch(() => {
-      error = true
-    })
-
-    let exitCode = error ? 1 : 0
-    this.exit(exitCode)
+      let opts = {concurrent: true, exitOnError: false}
+      await new Listr(tasks, opts).run().catch(() => {
+        exitCode = 1
+      })
+    } finally {
+      errorLog.end()
+      this.exit(exitCode)
+    }
   }
 
   onlyFilter(included: string | undefined) {
