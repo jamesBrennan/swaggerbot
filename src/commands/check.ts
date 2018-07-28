@@ -12,7 +12,7 @@ interface CheckFlags {
 
 interface ListrTask {
   title: string,
-  task: Function
+  task: any
 }
 
 export default class Check extends Command {

@@ -1,11 +1,10 @@
-import {stream} from '@types/node'
 import {Observable} from 'rxjs'
 const JsonapiClient = require('@holidayextras/jsonapi-client')
 import {GenericObject} from './interfaces'
 
 interface CrawlerOpts {
   limit?: number
-  errorLog?: stream.WritableStream
+  errorLog?: WritableStream
 }
 
 export default class ResourceCrawler {
@@ -13,7 +12,7 @@ export default class ResourceCrawler {
   client: GenericObject
   offset: number
   limit: number
-  errorLog: stream.WritableStream
+  errorLog: WritableStream | undefined
 
   constructor(name: string, base: string, opts: CrawlerOpts) {
     this.name = name
@@ -49,9 +48,9 @@ export default class ResourceCrawler {
     }
   }
 
-  async next(): any[] {
+  next(): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      this.client.find(this.name, {page: this.page}, (err, resources) => {
+      this.client.find(this.name, {page: this.page}, (err: Error, resources: any[]) => {
         if (err) reject(err)
         this.increment()
         resolve(resources)
@@ -65,7 +64,7 @@ export default class ResourceCrawler {
 
   logError(error: Error) {
     this.errorLog.write(`ERROR: ${this.name} - ${this.pageJSON} \n`)
-    this.errorLog.write(error.stack.concat("\n\n\n"))
+    this.errorLog.write(error.stack.concat('\n\n\n'))
   }
 
   get page() {
