@@ -1,7 +1,9 @@
-import {Command, flags} from '@oclif/command'
 const Swagger = require('swagger-client')
+const Listr = require('listr')
+
+import {Command, flags} from '@oclif/command'
 import {util} from '../util'
-import {Response, SwaggerClient} from '../interfaces'
+import {SwaggerClient, Response} from '../interfaces'
 
 interface CheckFlags {
   help?: void
@@ -24,14 +26,26 @@ export default class Check extends Command {
     const client = await new Swagger(args.src)
     const resources = this.resources(client.apis, flags)
 
-    let promises = resources.map(async resource => {
-      let [err, res] = await this.get(client, resource)
-      this.log(resource, this.status(err, res))
+    const tasks = []
+
+    resources.forEach(resource => {
+      tasks.push({
+        title: resource,
+        task: async () => {
+          await this.get(client, resource)
+        }
+      })
     })
 
-    await Promise.all(promises)
-    this.log('finished')
-    this.exit()
+    let opts = {concurrent: true, exitOnError: false}
+    let error = false
+
+    await new Listr(tasks, opts).run().catch(() => {
+      error = true
+    })
+
+    let exitCode = error ? 1 : 0
+    this.exit(exitCode)
   }
 
   onlyFilter(included: string | undefined) {
@@ -48,6 +62,6 @@ export default class Check extends Command {
   }
 
   async get(client: SwaggerClient, resource: string) {
-    return util.to(client.apis[resource][`get_${resource}`])
+    return client.apis[resource][`get_${resource}`]()
   }
 }
