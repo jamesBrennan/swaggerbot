@@ -11,6 +11,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
+    "listr": "^0.14.1",
     "swagger-client": "^3.8.11",
     "tslib": "^1"
   },
