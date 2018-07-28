@@ -6,6 +6,6 @@ export interface SwaggerClient {
   apis: GenericObject
 }
 
-interface GenericObject {
+export interface GenericObject {
   [key: string]: any
 }

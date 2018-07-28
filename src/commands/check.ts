@@ -2,12 +2,16 @@ const Swagger = require('swagger-client')
 const Listr = require('listr')
 
 import {Command, flags} from '@oclif/command'
-import {SwaggerClient, Response} from '../interfaces'
 import ResourceCrawler from '../ResourceCrawler'
 
 interface CheckFlags {
   help?: void
   only?: string
+}
+
+interface ListrTask {
+  title: string,
+  task: Function
 }
 
 export default class Check extends Command {
@@ -27,7 +31,7 @@ export default class Check extends Command {
     const base = args.src.replace('/swagger.json', '')
     const resources = this.resources(client.apis, flags)
 
-    const tasks = []
+    const tasks: ListrTask[] = []
 
     resources.forEach(resource => {
       tasks.push(
@@ -53,13 +57,5 @@ export default class Check extends Command {
 
   resources(available: object[], flags: CheckFlags) {
     return Object.keys(available).filter(this.onlyFilter(flags.only))
-  }
-
-  status(err: Response | undefined, res: Response | undefined) {
-    return res && res.status || err && err.status
-  }
-
-  async get(client: SwaggerClient, resource: string) {
-    return client.apis[resource][`get_${resource}`]()
   }
 }

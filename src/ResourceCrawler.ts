@@ -1,16 +1,20 @@
-const JsonapiClient = require('@holidayextras/jsonapi-client')
-const util = require('util')
 import {Observable} from 'rxjs'
+const JsonapiClient = require('@holidayextras/jsonapi-client')
+import {GenericObject} from './interfaces'
 
 interface CrawlerOpts {
   limit?: number
 }
 
 export default class ResourceCrawler {
+  name: string
+  client: GenericObject
+  offset: number
+  limit: number
+
   constructor(name: string, base: string, opts: CrawlerOpts) {
     this.name = name
     this.client = new JsonapiClient(base)
-    this.find = util.promisify(this.client.find)
     this.offset = 0
     this.limit = opts.limit || 50
   }
@@ -26,21 +30,21 @@ export default class ResourceCrawler {
     }
   }
 
-  async crawl(observer) {
+  async crawl(observer: any) {
     try {
-      observer.next(`Fetching ${JSON.stringify(this.page)}`)
+      observer.next(`Fetching ${this.pageJSON}`)
       let resources = await this.nextPage()
       if (resources.length > 0) {
         await this.crawl(observer)
       }
     } catch (e) {
-      observer.error(e)
+      observer.error(`Failed on ${this.pageJSON} with: ${e.message}`)
     } finally {
       observer.complete()
     }
   }
 
-  nextPage() {
+  nextPage(): any[] {
     return new Promise((resolve, reject) => {
       this.client.find(this.name, {page: this.page}, (err, resources) => {
         if (err) reject(err)
@@ -59,5 +63,9 @@ export default class ResourceCrawler {
       limit: this.limit,
       offset: this.offset
     }
+  }
+
+  get pageJSON() {
+    return JSON.stringify(this.page)
   }
 }
