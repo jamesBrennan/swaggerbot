@@ -1,4 +1,4 @@
-const JsonapiClient = require('@holidayextras/jsonapi-client')
+import * as JsonapiClient from '@holidayextras/jsonapi-client'
 import {Crawler, GenericObject} from './interfaces'
 
 interface PageParams {
@@ -10,13 +10,11 @@ export default class JSONAPICrawler implements Crawler {
   resource: string
   offset: number
   limit: number
-  params: PageParams
   client: GenericObject
 
-  constructor(base: string, resource: string, params: PageParams) {
+  constructor(base: string, resource: string, params: PageParams = {}) {
     this.client = new JsonapiClient(base)
     this.resource = resource
-    this.params = params
     this.limit = params.limit || 50
     this.offset = params.offset || 0
   }
@@ -40,5 +38,9 @@ export default class JSONAPICrawler implements Crawler {
       limit: this.limit,
       offset: this.offset
     }
+  }
+
+  get params(): PageParams {
+    return this.page
   }
 }

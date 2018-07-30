@@ -3,8 +3,8 @@ const fs = require('fs')
 const Swagger = require('swagger-client')
 const Listr = require('listr')
 
-import PageCrawler from '../PageCrawler'
 import JSONAPICrawler from '../JSONAPICrawler'
+import PageCrawler from '../PageCrawler'
 
 interface CheckFlags {
   help?: void

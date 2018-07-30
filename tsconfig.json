@@ -4,6 +4,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "module": "commonjs",
+    "jsx": "react",
     "outDir": "./lib",
     "rootDirs": [ "./src" ],
     "strict": true,
