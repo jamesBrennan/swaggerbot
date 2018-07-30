@@ -4,6 +4,7 @@ const Swagger = require('swagger-client')
 const Listr = require('listr')
 
 import PageCrawler from '../PageCrawler'
+import JSONAPICrawler from '../JSONAPICrawler'
 
 interface CheckFlags {
   help?: void
@@ -38,8 +39,9 @@ export default class Check extends Command {
 
     try {
       resources.forEach(resource => {
+        let jsonCrawler = new JSONAPICrawler(base, resource, {limit: 100})
         tasks.push(
-          new PageCrawler(resource, base, {errorLog, limit: 100}).task()
+          new PageCrawler(jsonCrawler, {errorLog}).task()
         )
       })
 
