@@ -3,7 +3,7 @@ const fs = require('fs')
 const Swagger = require('swagger-client')
 const Listr = require('listr')
 
-import ResourceCrawler from '../ResourceCrawler'
+import PageCrawler from '../PageCrawler'
 
 interface CheckFlags {
   help?: void
@@ -39,7 +39,7 @@ export default class Check extends Command {
     try {
       resources.forEach(resource => {
         tasks.push(
-          new ResourceCrawler(resource, base, {errorLog, limit: 100}).task()
+          new PageCrawler(resource, base, {errorLog, limit: 100}).task()
         )
       })
 

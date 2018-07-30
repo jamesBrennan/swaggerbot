@@ -7,7 +7,7 @@ interface CrawlerOpts {
   errorLog: NodeJS.WritableStream
 }
 
-export default class ResourceCrawler {
+export default class PageCrawler {
   name: string
   client: GenericObject
   offset: number
