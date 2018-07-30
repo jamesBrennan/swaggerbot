@@ -52,7 +52,7 @@ export default class PageCrawler {
   next(): Promise<any[]> {
     return new Promise((resolve, reject) => {
       this.client.find(this.name, {page: this.page}, (err: Error, resources: any[]) => {
-        if (err) reject(err)
+        if (err) { return reject(err) }
         this.increment()
         resolve(resources)
       })
